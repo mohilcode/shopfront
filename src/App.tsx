@@ -24,7 +24,6 @@ const languages = [
   { code: "hu", name: "Hungarian" },
   { code: "id", name: "Indonesian" },
   { code: "it", name: "Italian" },
-  { code: "ja", name: "Japanese" },
   { code: "ko", name: "Korean" },
   { code: "lv", name: "Latvian" },
   { code: "lt", name: "Lithuanian" },
@@ -124,7 +123,9 @@ const App: React.FC = () => {
   const [scannedData, setScannedData] = useState<string | null>(null)
   const [showScanner, setShowScanner] = useState(false)
   const [showIngredientsCamera, setShowIngredientsCamera] = useState(false)
-  const [selectedLanguage, setSelectedLanguage] = useState("en")
+  const [selectedLanguage, setSelectedLanguage] = useState(() => {
+    return localStorage.getItem("selectedLanguage") || "en"
+  })
   const [selectedCamera, setSelectedCamera] = useState<string>("")
   const [productInfo, setProductInfo] = useState<ProductInfo | null>(null)
   const [ingredientsInfo, setIngredientsInfo] = useState<IngredientsResponse | null>(null)
@@ -143,7 +144,6 @@ const App: React.FC = () => {
         const videoDevices = devices
           .filter(device => device.kind === "videoinput")
           .sort((a, b) => {
-            // Prioritize rear/back cameras
             const aLabel = a.label.toLowerCase()
             const bLabel = b.label.toLowerCase()
             if (aLabel.includes('back') || aLabel.includes('rear')) return -1
@@ -167,20 +167,24 @@ const App: React.FC = () => {
     getDevices()
   }, [])
 
-    useEffect(() => {
-      if (activeTab === "ingredients") {
-        setShowScanner(false)
-      } else {
-        if (videoRef.current?.srcObject) {
-          const stream = videoRef.current.srcObject as MediaStream
-          for (const track of stream.getTracks()) {
-            track.stop()
-          }
-          videoRef.current.srcObject = null
-          setShowIngredientsCamera(false)
+  useEffect(() => {
+    localStorage.setItem("selectedLanguage", selectedLanguage)
+  }, [selectedLanguage])
+
+  useEffect(() => {
+    if (activeTab === "ingredients") {
+      setShowScanner(false)
+    } else {
+      if (videoRef.current?.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream
+        for (const track of stream.getTracks()) {
+          track.stop()
         }
+        videoRef.current.srcObject = null
+        setShowIngredientsCamera(false)
       }
-    }, [activeTab])
+    }
+  }, [activeTab])
 
 
   const handleBarcodeScan = async (barcodes: DetectedBarcode[]) => {
@@ -508,21 +512,21 @@ const App: React.FC = () => {
                     </ul>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="flex items-center justify-between p-2 rounded">
-                      <span>Vegetarian:</span>
-                      {renderBooleanIcon(ingredientsInfo.vegetarian)}
+                  <div className="flex items-center justify-between p-2 rounded">
+                      <span>Vegan:</span>
+                      {renderBooleanIcon(ingredientsInfo.isVegan)}
                     </div>
                     <div className="flex items-center justify-between p-2 rounded">
                       <span>Contains Meat:</span>
                       {renderBooleanIcon(ingredientsInfo.containsMeat)}
                     </div>
                     <div className="flex items-center justify-between p-2 rounded">
-                      <span>Contains Fish:</span>
-                      {renderBooleanIcon(ingredientsInfo.containsFish)}
+                      <span>Vegetarian:</span>
+                      {renderBooleanIcon(ingredientsInfo.vegetarian)}
                     </div>
                     <div className="flex items-center justify-between p-2 rounded">
-                      <span>Vegan:</span>
-                      {renderBooleanIcon(ingredientsInfo.isVegan)}
+                      <span>Contains Fish:</span>
+                      {renderBooleanIcon(ingredientsInfo.containsFish)}
                     </div>
                   </div>
                   {ingredientsInfo.note && (
