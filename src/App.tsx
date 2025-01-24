@@ -58,7 +58,7 @@ interface ProductInfo {
 
 interface IngredientsResponse {
   ingredients: string[]
-  nonVegetarian: boolean
+  vegetarian: boolean
   containsMeat: boolean
   containsFish: boolean
   isVegan: boolean
@@ -291,7 +291,7 @@ const App: React.FC = () => {
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:24px_24px]" />
       <div className="max-w-md mx-auto relative">
         <div className="text-center border-b border-white/20 pb-4 mb-6">
-          <h1 className="text-3xl font-bold mb-2">SHOP JAPAN</h1>
+          <h1 className="text-3xl font-bold mb-2">SCANTOMO</h1>
           <div className="text-sm opacity-60">Scanner v2.0</div>
         </div>
 
@@ -351,7 +351,7 @@ const App: React.FC = () => {
                 <div className="space-y-1 mb-6">
                   <div className="flex items-center justify-between">
                     <span className="text-white/80">SYSTEM</span>
-                    <span className="opacity-60">{loading ? "PROCESSING..." : "READY"}</span>
+                    <span className="opacity-60">{loading ? "PROCESSING" : "READY"}</span>
                   </div>
                   <div className="text-sm opacity-60 border-l-2 border-white/20 pl-4 py-1">
                     {error || "Press the button to initiate scanning"}
@@ -461,7 +461,7 @@ const App: React.FC = () => {
               <div className="space-y-1 mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-white/80">SYSTEM</span>
-                  <span className="opacity-60">{ingredientsLoading ? "ANALYZING..." : "READY"}</span>
+                  <span className="opacity-60">{ingredientsLoading ? "ANALYZING" : "READY"}</span>
                 </div>
                 <div className="text-sm opacity-60 border-l-2 border-white/20 pl-4 py-1">
                   {ingredientsError || "Take a picture of the ingredients label"}
@@ -508,19 +508,19 @@ const App: React.FC = () => {
                     </ul>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="flex items-center justify-between bg-white/5 p-2 rounded">
-                      <span>Non-Vegetarian:</span>
-                      {renderBooleanIcon(ingredientsInfo.nonVegetarian)}
+                    <div className="flex items-center justify-between p-2 rounded">
+                      <span>Vegetarian:</span>
+                      {renderBooleanIcon(ingredientsInfo.vegetarian)}
                     </div>
-                    <div className="flex items-center justify-between bg-white/5 p-2 rounded">
+                    <div className="flex items-center justify-between p-2 rounded">
                       <span>Contains Meat:</span>
                       {renderBooleanIcon(ingredientsInfo.containsMeat)}
                     </div>
-                    <div className="flex items-center justify-between bg-white/5 p-2 rounded">
+                    <div className="flex items-center justify-between p-2 rounded">
                       <span>Contains Fish:</span>
                       {renderBooleanIcon(ingredientsInfo.containsFish)}
                     </div>
-                    <div className="flex items-center justify-between bg-white/5 p-2 rounded">
+                    <div className="flex items-center justify-between p-2 rounded">
                       <span>Vegan:</span>
                       {renderBooleanIcon(ingredientsInfo.isVegan)}
                     </div>
