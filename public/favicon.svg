@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background -->
+  <rect width="32" height="32" fill="black"/>
+  
+  <!-- Scanner Frame -->
+  <rect x="4" y="4" width="24" height="24" fill="none" stroke="white" stroke-width="2"/>
+  
+  <!-- Corner Markers -->
+  <path d="M 4 4 L 10 4 M 4 4 L 4 10" stroke="white" stroke-width="2"/>
+  <path d="M 28 4 L 22 4 M 28 4 L 28 10" stroke="white" stroke-width="2"/>
+  <path d="M 4 28 L 10 28 M 4 28 L 4 22" stroke="white" stroke-width="2"/>
+  <path d="M 28 28 L 22 28 M 28 28 L 28 22" stroke="white" stroke-width="2"/>
+  
+  <!-- Center Scan Line -->
+  <line x1="8" y1="16" x2="24" y2="16" stroke="white" stroke-width="2"/>
+</svg>

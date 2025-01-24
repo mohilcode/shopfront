@@ -1,6 +1,7 @@
 import type React from "react"
-import { useState, useEffect } from "react"
-import { QrReader } from "react-qr-reader"
+import { useState, useEffect, useRef } from "react"
+import { BarcodeScanner, type DetectedBarcode } from 'react-barcode-scanner'
+import 'react-barcode-scanner/polyfill'
 import { ChevronDown, Camera, RotateCw } from "lucide-react"
 
 const languages = [
@@ -68,25 +69,42 @@ interface CustomSelectProps {
 
 const CustomSelect: React.FC<CustomSelectProps> = ({ options, value, onChange, label }) => {
   const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [isOpen])
 
   return (
-    <div className="relative w-full">
-      <label className="block text-green-500 mb-1 text-xs">{label}</label>
+    <div className="relative w-full" ref={dropdownRef}>
+      <label className="block text-white/80 mb-1 text-xs">{label}</label>
       <button
         type="button"
-        className="w-full bg-black border border-green-500/50 rounded px-3 py-2 text-left flex items-center justify-between"
+        className="w-full bg-black border border-white/50 rounded px-3 py-2 text-left flex items-center justify-between"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="truncate">{options.find((opt) => opt.code === value || opt.id === value)?.name}</span>
-        <ChevronDown className="w-4 h-4 text-green-500" />
+        <ChevronDown className="w-4 h-4 text-white" />
       </button>
       {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-black border border-green-500/50 rounded shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-10 w-full mt-1 bg-black border border-white/50 rounded shadow-lg max-h-60 overflow-y-auto">
           {options.map((option) => (
             <button
               type="button"
               key={option.code || option.id}
-              className="w-full px-3 py-2 text-left hover:bg-green-500/10 transition-colors truncate"
+              className="w-full px-3 py-2 text-left hover:bg-white/10 transition-colors truncate"
               onClick={() => {
                 onChange(option.code || option.id || "")
                 setIsOpen(false)
@@ -135,20 +153,20 @@ const App: React.FC = () => {
     getDevices()
   }, [])
 
-  const handleScan = async (data: string | null) => {
-    if (data) {
+  const handleScan = async (barcodes: DetectedBarcode[]) => {
+    if (barcodes && barcodes.length > 0 && !loading) {
+      const data = barcodes[0].rawValue;
       setLoading(true)
       setError(null)
+      setShowScanner(false)
       try {
         const response = await fetch(`https://apishop.mohil.dev/barcode/${data}/${selectedLanguage}`)
         if (!response.ok) throw new Error("Product not found")
         const result = await response.json()
         setProductInfo(result)
         setScannedData(data)
-        setShowScanner(false)
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch product")
-        setShowScanner(false)
       } finally {
         setLoading(false)
       }
@@ -156,48 +174,41 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-green-500 font-mono relative overflow-hidden p-4">
-      <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="text-center border-b border-green-500/20 pb-4 mb-6">
-          <h1 className="text-3xl font-bold mb-2">SCAN JAPAN</h1>
+    <div className="min-h-screen bg-black text-white font-mono relative overflow-hidden p-4">
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:24px_24px]" />
+      <div className="max-w-md mx-auto relative">
+        <div className="text-center border-b border-white/20 pb-4 mb-6">
+          <h1 className="text-3xl font-bold mb-2">SHOP JAPAN</h1>
           <div className="text-sm opacity-60">Barcode Scanner v1.0</div>
         </div>
 
-        {/* Settings */}
-        <div className="space-y-4 border-b border-green-500/20 pb-6 mb-6">
+        <div className="space-y-4 border-b border-white/20 pb-6 mb-6">
           <CustomSelect options={languages} value={selectedLanguage} onChange={setSelectedLanguage} label="LANGUAGE" />
           <CustomSelect options={cameras} value={selectedCamera} onChange={setSelectedCamera} label="CAMERA" />
         </div>
 
-        {/* Content */}
-        <div className="border border-green-500/20 rounded p-4">
+        <div className="border border-white/20 rounded p-4">
           {showScanner ? (
             <div className="space-y-4">
               <div className="aspect-square bg-black rounded relative overflow-hidden">
-                <QrReader
-                  onResult={(result, error) => {
-                    if (result) {
-                      handleScan(result?.getText())
-                    }
-                    if (error) {
-                      console.error("Scanner error:", error)
-                    }
+                <BarcodeScanner
+                  options={{
+                    formats: ['code_128', 'ean_13', 'ean_8', 'upc_a', 'upc_e'],
+                    delay: 500
                   }}
-                  constraints={{
+                  onCapture={handleScan}
+                  trackConstraints={{
                     facingMode: selectedCamera,
                     deviceId: devices.find((d) =>
                       d.label.toLowerCase().includes(selectedCamera === "environment" ? "back" : "front"),
                     )?.deviceId,
                   }}
-                  className="w-full h-full"
-                  videoStyle={{ objectFit: "cover" }}
                 />
-                <div className="absolute inset-0 border-2 border-green-500/20 rounded pointer-events-none">
-                  <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-green-500" />
-                  <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-green-500" />
-                  <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-green-500" />
-                  <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-green-500" />
+                <div className="absolute inset-0 border-2 border-white/20 rounded pointer-events-none">
+                  <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white" />
+                  <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white" />
+                  <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white" />
+                  <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white" />
                 </div>
               </div>
               <div className="text-center text-sm opacity-60">Position barcode within the frame</div>
@@ -206,26 +217,45 @@ const App: React.FC = () => {
             <>
               <div className="space-y-1 mb-6">
                 <div className="flex items-center justify-between">
-                  <span className="text-green-500/80">SYSTEM</span>
+                  <span className="text-white/80">SYSTEM</span>
                   <span className="opacity-60">{loading ? "PROCESSING..." : "READY"}</span>
                 </div>
-                <div className="text-sm opacity-60 border-l-2 border-green-500/20 pl-4 py-1">
+                <div className="text-sm opacity-60 border-l-2 border-white/20 pl-4 py-1">
                   {error || "Press the button to initiate scanning"}
                 </div>
               </div>
 
-              {productInfo && scannedData ? (
+              {loading ? (
+                <div className="text-center text-white/80 animate-pulse">LOOKING UP PRODUCT...</div>
+              ) : error ? (
+                <div>
+                  <div className="text-center text-white/80 mb-4">{error}</div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowScanner(true)
+                      setProductInfo(null)
+                      setScannedData(null)
+                      setError(null)
+                    }}
+                    className="w-full py-2 border border-white/20 rounded text-center hover:bg-white/5 transition-colors text-sm flex items-center justify-center gap-2"
+                  >
+                    <RotateCw className="w-4 h-4" />
+                    SCAN AGAIN
+                  </button>
+                </div>
+              ) : productInfo && scannedData ? (
                 <div className="space-y-4">
                   <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 bg-green-500/10 flex items-center justify-center">
-                      <span className="text-green-500">ID</span>
+                    <div className="w-8 h-8 bg-white/10 flex items-center justify-center">
+                      <span className="text-white">ID</span>
                     </div>
                     <div>
                       <div className="font-bold">SCAN RESULT</div>
                       <div className="opacity-60 text-sm">{new Date().toLocaleDateString()}</div>
                     </div>
                   </div>
-                  <pre className="whitespace-pre-wrap leading-relaxed opacity-80 bg-green-500/5 p-4 rounded border border-green-500/10 text-xs">
+                  <pre className="whitespace-pre-wrap leading-relaxed opacity-80 bg-white/5 p-4 rounded border border-white/10 text-xs">
                     {`Product Name: ${productInfo.name}
 Description: ${productInfo.description}
 Scanned Code: ${scannedData}
@@ -239,7 +269,7 @@ Language: ${languages.find((l) => l.code === selectedLanguage)?.name}`}
                       setProductInfo(null)
                       setScannedData(null)
                     }}
-                    className="w-full py-2 border border-green-500/20 rounded text-center hover:bg-green-500/5 transition-colors text-sm flex items-center justify-center gap-2"
+                    className="w-full py-2 border border-white/20 rounded text-center hover:bg-white/5 transition-colors text-sm flex items-center justify-center gap-2"
                   >
                     <RotateCw className="w-4 h-4" />
                     SCAN AGAIN
@@ -249,26 +279,15 @@ Language: ${languages.find((l) => l.code === selectedLanguage)?.name}`}
                 <button
                   type="button"
                   onClick={() => setShowScanner(true)}
-                  className="w-full py-4 border border-green-500/20 rounded text-center hover:bg-green-500/5 transition-colors group relative overflow-hidden flex items-center justify-center gap-2"
+                  className="w-full py-4 border border-white/20 rounded text-center hover:bg-white/5 transition-colors group relative overflow-hidden flex items-center justify-center gap-2"
                 >
-                  <div className="absolute inset-0 bg-green-500/10 translate-y-full group-hover:translate-y-0 transition-transform" />
+                  <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform" />
                   <Camera className="w-5 h-5 relative" />
                   <span className="relative">INITIATE SCAN</span>
                 </button>
               )}
             </>
           )}
-        </div>
-
-        {/* ASCII Art Footer */}
-        <div className="mt-8 border-t border-green-500/20 pt-4">
-          <pre className="text-center text-xs opacity-40 text-green-500">
-            {`
-+-----------------+
-|    COMPLETE    |
-+-----------------+
-`}
-          </pre>
         </div>
       </div>
     </div>

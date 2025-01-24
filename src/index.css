@@ -1,16 +1,15 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@import "tailwindcss";
 
 :root {
   color-scheme: dark;
+  font-family: "VT323", monospace;
 }
 
 body {
-  font-family: "VT323", "Courier New", monospace;
+  font-family: inherit;
   background-color: black;
-  background-image: linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px);
+  background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 20px 20px;
 }
 
@@ -29,12 +28,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #22c55e;
+  background: #ffffff;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #16a34a;
+  background: #cccccc;
 }
 
 /* Blinking cursor effect */
@@ -54,4 +53,3 @@ body {
   content: "|";
   animation: blink 1s infinite;
 }
-
