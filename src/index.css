@@ -18,7 +18,6 @@ body {
   font-smooth: never;
 }
 
-/* Custom scrollbar for Webkit browsers */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -36,7 +35,6 @@ body {
   background: #cccccc;
 }
 
-/* Blinking cursor effect */
 @keyframes blink {
   0% {
     opacity: 0;
@@ -52,4 +50,19 @@ body {
 .cursor::after {
   content: "|";
   animation: blink 1s infinite;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-feed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
