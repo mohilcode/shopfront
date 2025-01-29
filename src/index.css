@@ -1,8 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 @import "tailwindcss";
 
 :root {
   color-scheme: dark;
-  font-family: "VT323", monospace;
+  font-family: "VT323", "Courier New", monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
@@ -14,8 +18,9 @@ body {
 }
 
 * {
-  -webkit-font-smoothing: none;
-  font-smooth: never;
+  /* Removing the no-smoothing properties as they can make text look jagged on PC */
+  /* -webkit-font-smoothing: none; */
+  /* font-smooth: never; */
 }
 
 ::-webkit-scrollbar {
