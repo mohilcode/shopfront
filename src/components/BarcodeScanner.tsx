@@ -83,7 +83,10 @@ export const BarcodeScanner: FC<BarcodeScannerProps> = ({
           fps: 10,
           qrbox: { width: 250, height: 250 }
         },
-        (decodedText) => onScan(decodedText),
+        async (decodedText) => {
+          await onScan(decodedText)
+          void stopScanner()
+        },
         (errorMessage) => {
           console.log(errorMessage)
         }

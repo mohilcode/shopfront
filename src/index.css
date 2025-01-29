@@ -17,12 +17,6 @@ body {
   background-size: 20px 20px;
 }
 
-* {
-  /* Removing the no-smoothing properties as they can make text look jagged on PC */
-  /* -webkit-font-smoothing: none; */
-  /* font-smooth: never; */
-}
-
 ::-webkit-scrollbar {
   width: 8px;
 }
