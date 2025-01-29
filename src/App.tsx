@@ -105,7 +105,7 @@ const App: FC = () => {
       />
       <div className="max-w-md mx-auto relative">
         <div className={`text-center border-b pb-4 mb-6 ${isDarkMode ? 'border-white/20' : 'border-black/20'}`}>
-          <h1 className="text-3xl font-bold mb-2">SCANOIR</h1>
+        <h1 className="text-3xl font-bold mb-2 font-[Monaco] tracking-wider">SCANOIR</h1>
           <div className="text-sm opacity-60">Scanner v2.0</div>
           <button
             onClick={toggleDarkMode}
