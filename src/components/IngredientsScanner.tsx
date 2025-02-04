@@ -1,7 +1,7 @@
 import type { FC } from 'react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Camera, RotateCw } from 'lucide-react'
-import { IngredientsResponse } from '../types'
+import type { IngredientsResponse } from '../types'
 
 interface IngredientsScannerProps {
   selectedCamera: string
@@ -12,7 +12,7 @@ interface IngredientsScannerProps {
 export const IngredientsScanner: FC<IngredientsScannerProps> = ({
   selectedCamera,
   isDarkMode,
-  selectedLanguage
+  selectedLanguage,
 }) => {
   const [showCamera, setShowCamera] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -66,14 +66,20 @@ export const IngredientsScanner: FC<IngredientsScannerProps> = ({
   }
 
   const captureImage = () => {
-    if (!videoRef.current || !canvasRef.current) return
+    if (!videoRef.current || !canvasRef.current) {
+      return
+    }
 
     const context = canvasRef.current.getContext('2d')
-    if (!context) return
+    if (!context) {
+      return
+    }
 
     context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height)
     canvasRef.current.toBlob(async blob => {
-      if (blob) await analyzeIngredients(blob)
+      if (blob) {
+        await analyzeIngredients(blob)
+      }
     }, 'image/jpeg')
 
     stopCamera()
@@ -92,7 +98,9 @@ export const IngredientsScanner: FC<IngredientsScannerProps> = ({
         body: formData,
       })
 
-      if (!response.ok) throw new Error('Failed to analyze ingredients')
+      if (!response.ok) {
+        throw new Error('Failed to analyze ingredients')
+      }
       setIngredientsInfo(await response.json())
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to analyze ingredients')
@@ -120,30 +128,38 @@ export const IngredientsScanner: FC<IngredientsScannerProps> = ({
             className="w-full h-full object-cover"
           />
           <canvas ref={canvasRef} className="hidden" width={640} height={640} />
-          <div className={`absolute inset-0 border-2 rounded pointer-events-none ${
-            isDarkMode ? 'border-white/20' : 'border-black/20'
-          }`}>
-            <div className={`absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 ${
-              isDarkMode ? 'border-white' : 'border-black'
-            }`} />
-            <div className={`absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 ${
-              isDarkMode ? 'border-white' : 'border-black'
-            }`} />
-            <div className={`absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 ${
-              isDarkMode ? 'border-white' : 'border-black'
-            }`} />
-            <div className={`absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 ${
-              isDarkMode ? 'border-white' : 'border-black'
-            }`} />
+          <div
+            className={`absolute inset-0 border-2 rounded pointer-events-none ${
+              isDarkMode ? 'border-white/20' : 'border-black/20'
+            }`}
+          >
+            <div
+              className={`absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 ${
+                isDarkMode ? 'border-white' : 'border-black'
+              }`}
+            />
+            <div
+              className={`absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 ${
+                isDarkMode ? 'border-white' : 'border-black'
+              }`}
+            />
+            <div
+              className={`absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 ${
+                isDarkMode ? 'border-white' : 'border-black'
+              }`}
+            />
+            <div
+              className={`absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 ${
+                isDarkMode ? 'border-white' : 'border-black'
+              }`}
+            />
           </div>
         </div>
         <button
           type="button"
           onClick={captureImage}
           className={`w-full py-2 border rounded text-center transition-colors text-sm ${
-            isDarkMode
-              ? 'border-white/20 hover:bg-white/5'
-              : 'border-black/20 hover:bg-black/5'
+            isDarkMode ? 'border-white/20 hover:bg-white/5' : 'border-black/20 hover:bg-black/5'
           }`}
         >
           CAPTURE IMAGE
@@ -159,24 +175,26 @@ export const IngredientsScanner: FC<IngredientsScannerProps> = ({
           <span className={isDarkMode ? 'text-white/80' : 'text-black/80'}>SYSTEM</span>
           <span className="opacity-60">{loading ? 'ANALYZING' : 'READY'}</span>
         </div>
-        <div className={`text-sm opacity-60 border-l-2 pl-4 py-1 ${
-          isDarkMode ? 'border-white/20' : 'border-black/20'
-        }`}>
+        <div
+          className={`text-sm opacity-60 border-l-2 pl-4 py-1 ${
+            isDarkMode ? 'border-white/20' : 'border-black/20'
+          }`}
+        >
           {error || 'Take a picture of the ingredients label'}
         </div>
       </div>
 
       {loading ? (
-        <div className={`text-center animate-pulse ${
-          isDarkMode ? 'text-white/80' : 'text-black/80'
-        }`}>
+        <div
+          className={`text-center animate-pulse ${isDarkMode ? 'text-white/80' : 'text-black/80'}`}
+        >
           ANALYZING INGREDIENTS...
         </div>
       ) : error ? (
         <div>
-          <div className={`text-center mb-4 ${
-            isDarkMode ? 'text-white/80' : 'text-black/80'
-          }`}>{error}</div>
+          <div className={`text-center mb-4 ${isDarkMode ? 'text-white/80' : 'text-black/80'}`}>
+            {error}
+          </div>
           <button
             type="button"
             onClick={() => {
@@ -185,9 +203,7 @@ export const IngredientsScanner: FC<IngredientsScannerProps> = ({
               setError(null)
             }}
             className={`w-full py-2 border rounded text-center transition-colors text-sm flex items-center justify-center gap-2 ${
-              isDarkMode
-                ? 'border-white/20 hover:bg-white/5'
-                : 'border-black/20 hover:bg-black/5'
+              isDarkMode ? 'border-white/20 hover:bg-white/5' : 'border-black/20 hover:bg-black/5'
             }`}
           >
             <RotateCw className="w-4 h-4" />
@@ -197,9 +213,11 @@ export const IngredientsScanner: FC<IngredientsScannerProps> = ({
       ) : ingredientsInfo ? (
         <div className="space-y-4">
           <div className="flex items-start gap-4">
-            <div className={`w-8 h-8 flex items-center justify-center ${
-              isDarkMode ? 'bg-white/10' : 'bg-black/10'
-            }`}>
+            <div
+              className={`w-8 h-8 flex items-center justify-center ${
+                isDarkMode ? 'bg-white/10' : 'bg-black/10'
+              }`}
+            >
               <span>IN</span>
             </div>
             <div>
@@ -210,7 +228,7 @@ export const IngredientsScanner: FC<IngredientsScannerProps> = ({
           <div className="space-y-2">
             <h3 className="font-bold">Ingredients:</h3>
             <ul className="list-disc list-inside">
-              {ingredientsInfo.ingredients.map((ingredient) => (
+              {ingredientsInfo.ingredients.map(ingredient => (
                 <li key={`ingredient-${ingredient}`} className="text-sm">
                   {ingredient}
                 </li>
@@ -236,11 +254,11 @@ export const IngredientsScanner: FC<IngredientsScannerProps> = ({
             </div>
           </div>
           {ingredientsInfo.note && (
-            <div className={`p-4 rounded border ${
-              isDarkMode
-                ? 'bg-white/5 border-white/10'
-                : 'bg-black/5 border-black/10'
-            }`}>
+            <div
+              className={`p-4 rounded border ${
+                isDarkMode ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'
+              }`}
+            >
               <h3 className="font-bold mb-1">Note:</h3>
               <p className="text-sm opacity-80">{ingredientsInfo.note}</p>
             </div>
@@ -252,9 +270,7 @@ export const IngredientsScanner: FC<IngredientsScannerProps> = ({
               setIngredientsInfo(null)
             }}
             className={`w-full py-2 border rounded text-center transition-colors text-sm flex items-center justify-center gap-2 ${
-              isDarkMode
-                ? 'border-white/20 hover:bg-white/5'
-                : 'border-black/20 hover:bg-black/5'
+              isDarkMode ? 'border-white/20 hover:bg-white/5' : 'border-black/20 hover:bg-black/5'
             }`}
           >
             <RotateCw className="w-4 h-4" />
@@ -266,14 +282,14 @@ export const IngredientsScanner: FC<IngredientsScannerProps> = ({
           type="button"
           onClick={startCamera}
           className={`w-full py-4 border rounded text-center transition-colors group relative overflow-hidden flex items-center justify-center gap-2 ${
-            isDarkMode
-              ? 'border-white/20'
-              : 'border-black/20'
+            isDarkMode ? 'border-white/20' : 'border-black/20'
           }`}
         >
-          <div className={`absolute inset-0 translate-y-full group-hover:translate-y-0 transition-transform ${
-            isDarkMode ? 'bg-white/10' : 'bg-black/10'
-          }`} />
+          <div
+            className={`absolute inset-0 translate-y-full group-hover:translate-y-0 transition-transform ${
+              isDarkMode ? 'bg-white/10' : 'bg-black/10'
+            }`}
+          />
           <Camera className="w-5 h-5 relative" />
           <span className="relative">TAKE PICTURE</span>
         </button>

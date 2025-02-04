@@ -1,7 +1,7 @@
 import type { FC } from 'react'
 import { useState, useEffect } from 'react'
 import { Sun, Moon } from 'lucide-react'
-import { Html5Qrcode } from "html5-qrcode"
+import { Html5Qrcode } from 'html5-qrcode'
 
 import { CustomSelect } from './components/CustomSelect'
 import { BarcodeScanner } from './components/BarcodeScanner'
@@ -41,8 +41,12 @@ const App: FC = () => {
           .sort((a, b) => {
             const aLabel = a.label.toLowerCase()
             const bLabel = b.label.toLowerCase()
-            if (aLabel.includes('back') || aLabel.includes('rear')) return -1
-            if (bLabel.includes('back') || bLabel.includes('rear')) return 1
+            if (aLabel.includes('back') || aLabel.includes('rear')) {
+              return -1
+            }
+            if (bLabel.includes('back') || bLabel.includes('rear')) {
+              return 1
+            }
             return 0
           })
           .map(device => ({
@@ -74,7 +78,9 @@ const App: FC = () => {
         const response = await fetch(
           `https://apishop.mohil.dev/barcode/${data}/${selectedLanguage}`
         )
-        if (!response.ok) throw new Error('Product not found')
+        if (!response.ok) {
+          throw new Error('Product not found')
+        }
         setProductInfo(await response.json())
         setScannedData(data)
       } catch (err) {
@@ -86,9 +92,11 @@ const App: FC = () => {
   }
 
   return (
-    <div className={`min-h-screen font-mono relative overflow-hidden p-4 ${
-      isDarkMode ? 'bg-black text-white' : 'bg-white text-black'
-    }`}>
+    <div
+      className={`min-h-screen font-mono relative overflow-hidden p-4 ${
+        isDarkMode ? 'bg-black text-white' : 'bg-white text-black'
+      }`}
+    >
       <div
         className={`absolute inset-0 bg-[linear-gradient(to_right,${
           isDarkMode ? '#ffffff08' : '#00000008'
@@ -100,28 +108,29 @@ const App: FC = () => {
             isDarkMode ? '#ffffff08' : '#00000008'
           } 1px, transparent 1px), linear-gradient(to bottom, ${
             isDarkMode ? '#ffffff08' : '#00000008'
-          } 1px, transparent 1px)`
+          } 1px, transparent 1px)`,
         }}
       />
       <div className="max-w-md mx-auto relative">
-        <div className={`text-center border-b pb-4 mb-6 ${isDarkMode ? 'border-white/20' : 'border-black/20'}`}>
-        <h1 className="text-3xl font-bold mb-2 font-[Monaco] tracking-wider">SCANOIR</h1>
+        <div
+          className={`text-center border-b pb-4 mb-6 ${isDarkMode ? 'border-white/20' : 'border-black/20'}`}
+        >
+          <h1 className="text-3xl font-bold mb-2 font-[Monaco] tracking-wider">SCANOIR</h1>
           <div className="text-sm opacity-60">Scanner v2.0</div>
           <button
+            type="button"
             onClick={toggleDarkMode}
             className={`absolute top-0 right-0 p-2 transition-colors ${
               isDarkMode ? 'border-white/50 hover:bg-white/10' : 'border-black/50 hover:bg-black/10'
             } border`}
           >
-            {isDarkMode ? (
-              <Sun className="w-5 h-5" />
-            ) : (
-              <Moon className="w-5 h-5" />
-            )}
+            {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
         </div>
 
-        <div className={`space-y-4 border-b pb-6 mb-6 ${isDarkMode ? 'border-white/20' : 'border-black/20'}`}>
+        <div
+          className={`space-y-4 border-b pb-6 mb-6 ${isDarkMode ? 'border-white/20' : 'border-black/20'}`}
+        >
           <CustomSelect
             options={languages}
             value={selectedLanguage}

@@ -10,7 +10,13 @@ export interface CustomSelectProps {
   isDarkMode: boolean
 }
 
-export const CustomSelect: FC<CustomSelectProps> = ({ options, value, onChange, label, isDarkMode }) => {
+export const CustomSelect: FC<CustomSelectProps> = ({
+  options,
+  value,
+  onChange,
+  label,
+  isDarkMode,
+}) => {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -21,13 +27,18 @@ export const CustomSelect: FC<CustomSelectProps> = ({ options, value, onChange, 
       }
     }
 
-    if (isOpen) document.addEventListener('mousedown', handleClickOutside)
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [isOpen])
 
   return (
     <div className="relative w-full" ref={dropdownRef}>
-      <label htmlFor={`select-${label}`} className={`block mb-1 text-xs ${isDarkMode ? 'text-white/80' : 'text-black/80'}`}>
+      <label
+        htmlFor={`select-${label}`}
+        className={`block mb-1 text-xs ${isDarkMode ? 'text-white/80' : 'text-black/80'}`}
+      >
         {label}
       </label>
       <button
@@ -44,9 +55,11 @@ export const CustomSelect: FC<CustomSelectProps> = ({ options, value, onChange, 
         <ChevronDown className={`w-4 h-4 ${isDarkMode ? 'text-white' : 'text-black'}`} />
       </button>
       {isOpen && (
-        <div className={`absolute z-10 w-full mt-1 border rounded shadow-lg max-h-60 overflow-y-auto ${
-          isDarkMode ? 'bg-black border-white/50' : 'bg-white border-black/50'
-        }`}>
+        <div
+          className={`absolute z-10 w-full mt-1 border rounded shadow-lg max-h-60 overflow-y-auto ${
+            isDarkMode ? 'bg-black border-white/50' : 'bg-white border-black/50'
+          }`}
+        >
           {options.map(option => (
             <button
               type="button"
