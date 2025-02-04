@@ -8,6 +8,10 @@ const getSupportedLanguage = (language: string): string => {
   return language in JMA_LANGUAGE_MAPPING ? language : 'en'
 }
 
+const isLanguageSupported = (language: string): boolean => {
+  return language in JMA_LANGUAGE_MAPPING
+}
+
 interface UseEarthquakeDataReturn {
   data: EarthquakeData | null
   loading: boolean
@@ -91,11 +95,21 @@ export const EarthquakeInfo: React.FC<EarthquakeInfoProps> = ({ isDarkMode, sele
   return (
     <div className="space-y-4">
       <div className="space-y-1 mb-6">
+        {!isLanguageSupported(selectedLanguage) && (
+          <div className="mb-4 p-2 bg-red-50 dark:bg-red-900/20 rounded-md">
+            <div className="flex items-center space-x-2">
+              <AlertTriangle className="text-red-600 dark:text-red-400" size={16} />
+              <p className="text-sm text-red-600 dark:text-red-400">
+                Earthquake information is only available in English, Chinese, Korean, Portuguese, Spanish, Vietnamese, Thai, and Indonesian. Showing in English.
+              </p>
+            </div>
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <span className={isDarkMode ? 'text-white/80' : 'text-black/80'}>SYSTEM</span>
           <div className="flex items-center gap-2">
             <span className="opacity-60">
-              {loading ? 'FETCHING' : earthquakeData ? 'READY' : 'IDLE'}
+              {loading ? 'FETCHING' : earthquakeData ? 'REFRESH' : 'IDLE'}
             </span>
             <button
               type="button"
