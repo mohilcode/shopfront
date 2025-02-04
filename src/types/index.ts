@@ -16,3 +16,36 @@ export interface IngredientsResponse {
   isVegan: boolean
   note: string
 }
+
+export interface BaseEarthquake {
+  time: string
+  magnitude: string
+  location: {
+    code: string
+    coordinate: string
+  }
+  comments: {
+    hasTsunamiWarning: boolean
+  }
+}
+
+export interface DetailedEarthquake extends BaseEarthquake {
+  maxInt: string
+  regions: Array<{
+    prefecture: string
+    areas: Array<{
+      area_code: string
+      cities: Array<{
+        city_code: string
+      }>
+    }>
+  }>
+}
+
+export type EarthquakeData = {
+  data: {
+    detailed: DetailedEarthquake[]
+    basic: BaseEarthquake[]
+  }
+  last_updated: string
+}

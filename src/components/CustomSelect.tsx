@@ -2,7 +2,7 @@ import type { FC } from 'react'
 import { useState, useEffect, useRef } from 'react'
 import { ChevronDown } from 'lucide-react'
 
-export interface CustomSelectProps {
+interface CustomSelectProps {
   options: Array<{ code?: string; id?: string; name: string }>
   value: string
   onChange: (value: string) => void

@@ -6,6 +6,7 @@ import { Html5Qrcode } from 'html5-qrcode'
 import { CustomSelect } from './components/CustomSelect'
 import { BarcodeScanner } from './components/BarcodeScanner'
 import { IngredientsScanner } from './components/IngredientsScanner'
+import { EarthquakeInfo } from './components/EarthquakeInfo'
 import { languages } from './constants'
 import type { Device, ProductInfo } from './types'
 
@@ -14,7 +15,7 @@ const App: FC = () => {
     const savedTheme = localStorage.getItem('theme')
     return savedTheme ? savedTheme === 'dark' : true
   })
-  const [activeTab, setActiveTab] = useState<'barcode' | 'ingredients'>('barcode')
+  const [activeTab, setActiveTab] = useState<'barcode' | 'ingredients' | 'earthquake'>('barcode')
   const [scannedData, setScannedData] = useState<string | null>(null)
   const [selectedLanguage, setSelectedLanguage] = useState(() => {
     return localStorage.getItem('selectedLanguage') || 'en'
@@ -178,6 +179,21 @@ const App: FC = () => {
           >
             Ingredients
           </button>
+          <button
+            type="button"
+            className={`px-4 py-2 border ${
+              activeTab === 'earthquake'
+                ? isDarkMode
+                  ? 'bg-white text-black'
+                  : 'bg-black text-white'
+                : isDarkMode
+                  ? 'bg-black text-white'
+                  : 'bg-white text-black'
+            } ${isDarkMode ? 'border-white' : 'border-black'}`}
+            onClick={() => setActiveTab('earthquake')}
+          >
+            Earthquake
+          </button>
         </div>
 
         <div className={`border rounded p-4 ${isDarkMode ? 'border-white/20' : 'border-black/20'}`}>
@@ -191,13 +207,15 @@ const App: FC = () => {
               productInfo={productInfo}
               scannedData={scannedData}
             />
-          ) : (
+          ) : activeTab === 'ingredients' ? (
             <IngredientsScanner
               selectedCamera={selectedCamera}
               isDarkMode={isDarkMode}
               selectedLanguage={selectedLanguage}
             />
-          )}
+          ) : activeTab === 'earthquake' ? (
+            <EarthquakeInfo isDarkMode={isDarkMode} selectedLanguage={selectedLanguage} />
+          ) : null}
         </div>
       </div>
     </div>
