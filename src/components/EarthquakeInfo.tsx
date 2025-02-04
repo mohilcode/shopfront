@@ -1,29 +1,41 @@
 import type React from 'react'
-import { useState, useEffect } from 'react'
-import { AlertTriangle, Activity, MapPin, ChevronDown } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { AlertTriangle, Activity, MapPin, ChevronDown, Navigation, RefreshCw } from 'lucide-react'
 import type { EarthquakeData } from '../types'
+import { JMA_LANGUAGE_MAPPING } from '../constants'
 
-interface EarthquakeInfoProps {
-  isDarkMode: boolean
-  selectedLanguage: string
+const getSupportedLanguage = (language: string): string => {
+  return language in JMA_LANGUAGE_MAPPING ? language : 'en'
 }
 
-export const EarthquakeInfo: React.FC<EarthquakeInfoProps> = ({ isDarkMode, selectedLanguage }) => {
-  const [earthquakeData, setEarthquakeData] = useState<EarthquakeData | null>(null)
+interface UseEarthquakeDataReturn {
+  data: EarthquakeData | null
+  loading: boolean
+  error: string | null
+  forceRefresh: () => void
+}
+
+function useEarthquakeData(language: string): UseEarthquakeDataReturn {
+  const [data, setData] = useState<EarthquakeData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set())
+  const [forceCounter, setForceCounter] = useState(0)
 
   useEffect(() => {
-    const fetchEarthquakes = async () => {
+    async function fetchData() {
       setLoading(true)
       try {
-        const response = await fetch(`https://apishop.mohil.dev/earthquakes/${selectedLanguage}`)
+        const supportedLanguage = getSupportedLanguage(language)
+        const url = new URL(`https://apishop.mohil.dev/earthquakes/${supportedLanguage}`)
+        if (forceCounter > 0) {
+          url.searchParams.set('force', 'true')
+        }
+        const response = await fetch(url.toString())
         if (!response.ok) {
           throw new Error('Failed to fetch earthquake data')
         }
-        const data: EarthquakeData = await response.json()
-        setEarthquakeData(data)
+        const result: EarthquakeData = await response.json()
+        setData(result)
         setError(null)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error')
@@ -32,25 +44,44 @@ export const EarthquakeInfo: React.FC<EarthquakeInfoProps> = ({ isDarkMode, sele
       }
     }
 
-    fetchEarthquakes()
-  }, [selectedLanguage])
+    fetchData()
+  }, [language, forceCounter])
 
-  const formatDate = (dateString: string) => {
+  const forceRefresh = useCallback(() => {
+    setForceCounter(prev => prev + 1)
+  }, [])
+
+  return { data, loading, error, forceRefresh }
+}
+
+interface EarthquakeInfoProps {
+  isDarkMode: boolean
+  selectedLanguage: string
+}
+
+export const EarthquakeInfo: React.FC<EarthquakeInfoProps> = ({ isDarkMode, selectedLanguage }) => {
+  const { data: earthquakeData, loading, error, forceRefresh } = useEarthquakeData(selectedLanguage)
+  const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set())
+
+  const formatDate = useCallback((dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleString(selectedLanguage, {
+    const supportedLanguage = getSupportedLanguage(selectedLanguage)
+    return date.toLocaleString(supportedLanguage, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     })
-  }
+  }, [selectedLanguage])
 
-  const toggleExpanded = (index: number) => {
-    const newExpanded = new Set(expandedIndices)
-    newExpanded.has(index) ? newExpanded.delete(index) : newExpanded.add(index)
-    setExpandedIndices(newExpanded)
-  }
+  const toggleExpanded = useCallback((index: number) => {
+    setExpandedIndices(prev => {
+      const newExpanded = new Set(prev)
+      newExpanded.has(index) ? newExpanded.delete(index) : newExpanded.add(index)
+      return newExpanded
+    })
+  }, [])
 
   const allQuakes = [
     ...(earthquakeData?.data.detailed.map(q => ({ ...q, type: 'detailed' as const })) || []),
@@ -62,19 +93,29 @@ export const EarthquakeInfo: React.FC<EarthquakeInfoProps> = ({ isDarkMode, sele
       <div className="space-y-1 mb-6">
         <div className="flex items-center justify-between">
           <span className={isDarkMode ? 'text-white/80' : 'text-black/80'}>SYSTEM</span>
-          <span className="opacity-60">
-            {loading ? 'FETCHING' : earthquakeData ? 'READY' : 'IDLE'}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="opacity-60">
+              {loading ? 'FETCHING' : earthquakeData ? 'READY' : 'IDLE'}
+            </span>
+            <button
+              type="button"
+              onClick={forceRefresh}
+              disabled={loading}
+              aria-label="Force refresh earthquake data"
+              className={`p-1.5 rounded hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50 ${
+                isDarkMode ? 'text-white/60' : 'text-black/60'
+              }`}
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
         </div>
-        <div
-          className={`text-sm opacity-60 border-l-2 pl-4 py-1 ${
-            isDarkMode ? 'border-white/20' : 'border-black/20'
+        <div className={`text-sm opacity-60 border-l-2 pl-4 py-1 ${
+          isDarkMode ? 'border-white/20' : 'border-black/20'
+        }`}>
+          {error || `Last updated: ${
+            earthquakeData?.last_updated ? formatDate(earthquakeData.last_updated) : 'N/A'
           }`}
-        >
-          {error ||
-            `Last updated: ${
-              earthquakeData?.last_updated ? formatDate(earthquakeData.last_updated) : 'N/A'
-            }`}
         </div>
       </div>
 
@@ -95,22 +136,20 @@ export const EarthquakeInfo: React.FC<EarthquakeInfoProps> = ({ isDarkMode, sele
             return (
               <div
                 key={`${quake.time}-${quake.location.code}`}
-                className={`p-4 rounded border ${
+                className={`rounded border ${
                   isDarkMode ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'
                 }`}
               >
                 <button
                   type="button"
                   onClick={() => toggleExpanded(index)}
-                  className="w-full text-left focus:outline-none"
+                  className="w-full text-left focus:outline-none p-4"
                 >
-                  <div className="flex items-start justify-between gap-4 mb-2">
+                  <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      <div
-                        className={`w-8 h-8 flex items-center justify-center ${
-                          isDarkMode ? 'bg-white/10' : 'bg-black/10'
-                        }`}
-                      >
+                      <div className={`w-8 h-8 flex items-center justify-center rounded ${
+                        isDarkMode ? 'bg-white/10' : 'bg-black/10'
+                      }`}>
                         <Activity className="w-5 h-5" />
                       </div>
                       <div>
@@ -122,73 +161,92 @@ export const EarthquakeInfo: React.FC<EarthquakeInfoProps> = ({ isDarkMode, sele
                       className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                     />
                   </div>
-                </button>
 
-                <div className="flex flex-wrap gap-2 mb-2">
-                  <div className="flex items-center gap-2 flex-1 min-w-[120px]">
-                    <Activity className="w-4 h-4" />
-                    <span>Magnitude: {quake.magnitude}</span>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4">
+                    <div className="flex items-center gap-2 min-w-fit">
+                      <Activity className="w-4 h-4 flex-shrink-0" />
+                      <span className="whitespace-nowrap">M: {quake.magnitude}</span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-1">
+                      <MapPin className="w-4 h-4 flex-shrink-0" />
+                      <span>{quake.location.code}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-1 min-w-[120px]">
-                    <MapPin className="w-4 h-4" />
-                    {/* Use the translated value in the `code` field */}
-                    <span>Location: {quake.location.code}</span>
-                  </div>
-                  {isDetailed && (
-                    <div className="flex items-center gap-2 flex-1 min-w-[120px]">
-                      <AlertTriangle className="w-4 h-4" />
-                      <span>Max Intensity: {quake.maxInt}</span>
+
+                  {quake.comments.hasTsunamiWarning && (
+                    <div className="text-red-500 font-bold mt-4 flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                      Tsunami Warning Issued
                     </div>
                   )}
-                </div>
-
-                {quake.comments.hasTsunamiWarning && (
-                  <div className="text-red-500 font-bold mt-2 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" />
-                    Tsunami Warning Issued
-                  </div>
-                )}
+                </button>
 
                 {isExpanded && (
-                  <div className="mt-4 space-y-2">
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="opacity-60">Location Code:</span>
-                        {/* Display the translated location (available in the code field) */}
-                        <span>{quake.location.code}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="opacity-60">Coordinates:</span>
+                  <div className="px-4 py-3 space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                      {isDetailed && (
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                          <span>Max Intensity: {quake.maxInt}</span>
+                        </div>
+                      )}
+                      <div title={quake.location.coordinate} className="flex items-center gap-2">
+                        <Navigation className="w-4 h-4 flex-shrink-0" />
                         <span>{quake.location.coordinate}</span>
                       </div>
                     </div>
 
                     {isDetailed && (
                       <div className="mt-2">
-                        <h4 className="font-bold mb-1">Affected Areas:</h4>
-                        <ul className="list-disc list-inside text-sm">
+                        <h4 className="font-bold mb-2">Affected Areas:</h4>
+                        <div className="space-y-4" role="tree">
                           {quake.regions.map(region => (
-                            <li key={region.prefecture}>
-                              {region.prefecture}
-                              <ul className="list-[circle] list-inside ml-4">
-                                {region.areas.map(area => (
-                                  <li key={area.area_code}>
-                                    {area.area_code}
-                                    {area.cities.length > 0 && (
-                                      <span className="opacity-60">
-                                        (
-                                        {area.cities
-                                          .map(city => city.city_code)
-                                          .join(', ')}
-                                        )
-                                      </span>
-                                    )}
-                                  </li>
+                            <div key={region.prefecture} className="space-y-2" role="treeitem">
+                              <div className="font-bold text-base flex items-center gap-2">
+                                <div className={`w-2 h-2 rounded-full ${
+                                  isDarkMode ? 'bg-white/60' : 'bg-black/60'
+                                }`} />
+                                {region.prefecture}
+                              </div>
+                              <div className="space-y-1">
+                                {region.areas.map((area) => (
+                                  <div key={area.area_code} role="treeitem">
+                                    <div className={`pl-4 border-l text-sm font-medium ${
+                                      isDarkMode ? 'border-white/20' : 'border-black/20'
+                                    }`}>
+                                      <div className="flex items-center gap-2">
+                                        <div className={`w-3 h-px ${
+                                          isDarkMode ? 'bg-white/20' : 'bg-black/20'
+                                        }`} />
+                                        {area.area_code}
+                                      </div>
+                                      {area.cities.length > 0 && (
+                                        <div className="ml-4 space-y-0.5 mt-1">
+                                          {area.cities.map(city => (
+                                            <div
+                                              key={city.city_code}
+                                              className={`pl-4 border-l text-sm opacity-70 ${
+                                                isDarkMode ? 'border-white/10' : 'border-black/10'
+                                              }`}
+                                              role="treeitem"
+                                            >
+                                              <div className="flex items-center gap-2">
+                                                <div className={`w-2 h-px ${
+                                                  isDarkMode ? 'bg-white/10' : 'bg-black/10'
+                                                }`} />
+                                                {city.city_code}
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
                                 ))}
-                              </ul>
-                            </li>
+                              </div>
+                            </div>
                           ))}
-                        </ul>
+                        </div>
                       </div>
                     )}
                   </div>

@@ -37,3 +37,14 @@ export const languages = [
   { code: 'uk', name: 'Ukrainian' },
   { code: 'vi', name: 'Vietnamese' },
 ]
+
+export const JMA_LANGUAGE_MAPPING = {
+  en: 'english',
+  zh: 'chinese_zs',
+  ko: 'korean',
+  pt: 'portuguese',
+  es: 'spanish',
+  vi: 'vietnamese',
+  th: 'thai',
+  id: 'indonesian',
+} as const
