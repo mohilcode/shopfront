@@ -267,7 +267,7 @@ export const BarcodeScanner: FC<BarcodeScannerProps> = ({
                           <span className={`text-xs px-2 py-1 rounded-full ${
                             isDarkMode ? 'bg-white/10' : 'bg-black/10'
                           }`}>
-                            {formatRating(productInfo.reviews.rakuten.average)}/5
+                            {formatRating(productInfo.reviews.rakuten.average)}/5.0
                           </span>
                         </div>
                       </div>
@@ -284,7 +284,7 @@ export const BarcodeScanner: FC<BarcodeScannerProps> = ({
                           <span className={`text-xs px-2 py-1 rounded-full ${
                             isDarkMode ? 'bg-white/10' : 'bg-black/10'
                           }`}>
-                            {formatRating(productInfo.reviews.yahoo.average)}/5
+                            {formatRating(productInfo.reviews.yahoo.average)}/5.0
                           </span>
                         </div>
                       </div>
