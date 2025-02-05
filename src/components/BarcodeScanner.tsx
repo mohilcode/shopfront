@@ -25,18 +25,34 @@ const scannerStyles = `
   }
 `
 
+interface Reviews {
+  rakuten?: {
+    count: number
+    average: number
+  }
+  yahoo?: {
+    count: number
+    average: number
+  }
+}
+
+interface ProductInfo {
+  name: string
+  description: string
+  reviews?: Reviews
+}
+
 interface BarcodeScannerProps {
   onScan: (data: string) => Promise<void>
   selectedCamera: string
   isDarkMode: boolean
   loading: boolean
   error: string | null
-  productInfo: {
-    name: string
-    description: string
-  } | null
+  productInfo: ProductInfo | null
   scannedData: string | null
 }
+
+const formatRating = (rating: number) => rating.toFixed(1)
 
 export const BarcodeScanner: FC<BarcodeScannerProps> = ({
   onScan,
@@ -231,6 +247,51 @@ export const BarcodeScanner: FC<BarcodeScannerProps> = ({
                 <h3 className="font-bold">Description</h3>
                 <p className="text-sm opacity-80 whitespace-pre-wrap">{productInfo.description}</p>
               </div>
+              {productInfo.reviews && Object.keys(productInfo.reviews).length > 0 && (
+                <div
+                  className={`space-y-3 p-4 rounded border ${
+                    isDarkMode ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'
+                  }`}
+                >
+                  <h3 className="font-bold">Reviews</h3>
+                  <div className="space-y-4">
+                    {productInfo.reviews.rakuten && (
+                      <div className="text-sm">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">Rakuten</span>
+                            <span className="opacity-60">
+                              {productInfo.reviews.rakuten.count} reviews
+                            </span>
+                          </div>
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            isDarkMode ? 'bg-white/10' : 'bg-black/10'
+                          }`}>
+                            {formatRating(productInfo.reviews.rakuten.average)}/5
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    {productInfo.reviews.yahoo && (
+                      <div className="text-sm">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">Yahoo</span>
+                            <span className="opacity-60">
+                              {productInfo.reviews.yahoo.count} reviews
+                            </span>
+                          </div>
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            isDarkMode ? 'bg-white/10' : 'bg-black/10'
+                          }`}>
+                            {formatRating(productInfo.reviews.yahoo.average)}/5
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
               <button
                 type="button"
                 onClick={() => {

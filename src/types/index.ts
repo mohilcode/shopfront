@@ -6,6 +6,10 @@ export interface Device {
 export interface ProductInfo {
   name: string
   description: string
+  reviews?: {
+    rakuten?: { count: number; average: number }
+    yahoo?: { count: number; average: number }
+  }
 }
 
 export interface IngredientsResponse {
